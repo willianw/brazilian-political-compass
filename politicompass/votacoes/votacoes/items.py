@@ -5,10 +5,23 @@
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/items.html
 
-import scrapy
+from scrapy.item import Item, Field
 
 
-class VotacoesItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class CandidadoItem(Item):
+    name = Field()
+    partido = Field()
+    uf = Field()
+    url = Field()
+    candidato_id = Field()
+
+class VotoItem(Item):
+    candidato_id = Field()
+    sessao_name = Field()
+    sessao_desc = Field()
+    sessao_url = Field()
+    sessao_id = Field()
+    voto = Field
+
+
+
