@@ -1,4 +1,4 @@
-from distutils.core import setup
+from distutils import setup
 
 setup(
     name='PolitiCompass',
