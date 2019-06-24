@@ -69,7 +69,7 @@ class CamaraDeputados(scrapy.Spider):
                     voto['sessao_desc'] = session_desc
                     if sess:
                         voto['sessao_name'] = sess.xpath('text()').get().strip()
-                        voto['sessao_id'] = sess.xpath('text()').re('([0-9]+/[0-9]+)')
+                        voto['sessao_id'] = sess.xpath('text()').re('([0-9]+/[0-9]+)')[0]
                         voto['sessao_url'] = sess.xpath('@href').get().strip()
                     if result:
                         result = result.lower().strip()
