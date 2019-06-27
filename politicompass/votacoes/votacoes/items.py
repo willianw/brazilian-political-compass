@@ -16,6 +16,7 @@ class CandidadoItem(Item):
     url = Field()
     candidato_id = Field()
 
+
 class VotoItem(Item):
     candidato_id = Field()
     sessao_name = Field()

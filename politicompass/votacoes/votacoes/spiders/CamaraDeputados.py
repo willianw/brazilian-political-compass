@@ -6,27 +6,31 @@ import pdb
 
 from votacoes.items import CandidadoItem, VotoItem
 
+
 class CamaraDeputados(scrapy.Spider):
     name = "camara_deputados"
 
     def start_requests(self):
-        year = 1996
-        legislature = 50
+        year = 1987
+        legislature = 48
         i = 0
         currentYr = datetime.now().year
         url = "https://www.camara.leg.br/internet/deputado/RelVotacoes.asp?nuLegislatura={:d}&dtInicio=01/01/{:d}&dtFim=31/12/{:d}&nuMatricula=1"
+        pdb.set_trace()
         while year <= currentYr:
-            yield Request(url.format(legislature, year, year), self.parse, meta={
-                'legislature': legislature,
-                'year': year,
-                'matr': 1})
+            yield Request(url.format(legislature, year, year),
+                          self.parse, meta={
+                                            'legislature': legislature,
+                                            'year': year,
+                                            'matr': 1})
             year += 1
             i += 1
             if i >= 4:
-                yield Request(url.format(legislature, year, year), self.parse, meta={
-                    'legislature': legislature,
-                    'year': year,
-                    'matr': 1})
+                yield Request(url.format(legislature, year, year),
+                              self.parse, meta={
+                                                'legislature': legislature,
+                                                'year': year,
+                                                'matr': 1})
                 legislature += 1
                 i = 0
 
@@ -36,7 +40,8 @@ class CamaraDeputados(scrapy.Spider):
             req = response.request
             attr, matr = req.url.split('&')[-1].split('=')
             req = req.replace(
-                url = "%s&%s=%d"%('&'.join(req.url.split('&')[:-1]), attr, int(matr)+1)
+                url="%s&%s=%d" % ('&'.join(req.url.split('&')[:-1]),
+                                  attr, int(matr) + 1)
                 )
             yield req
         title_link = content.xpath('h3/a')
@@ -49,9 +54,12 @@ class CamaraDeputados(scrapy.Spider):
             cand['candidato_id'] = cand_id
             try:
                 cand['ano'] = response.meta['year']
-                cand['name'] = title.re('(.*) - [A-Za-z \.]+/[A-Z]{2}')[0].strip()
-                cand['partido'] = title.re('.* - ([A-Za-z \.]+)/[A-Z]{2}')[0].strip()
-                cand['uf'] = title.re('.* - [A-Za-z \.]+/([A-Z]{2})')[0].strip()
+                name_pattern = '(.*) - [A-Za-z \.]+/[A-Z]{2}'
+                part_pattern = '.* - ([A-Za-z \.]+)/[A-Z]{2}'
+                uf_pattern = '.* - [A-Za-z \.]+/([A-Z]{2})'
+                cand['name'] = title.re(name_pattern)[0].strip()
+                cand['partido'] = title.re(part_pattern)[0].strip()
+                cand['uf'] = title.re(uf_pattern)[0].strip()
                 yield cand
             except IndexError:
                 inspect_response(response, self)
@@ -68,12 +76,15 @@ class CamaraDeputados(scrapy.Spider):
                     voto['candidato_id'] = cand_id
                     voto['sessao_desc'] = session_desc
                     if sess:
-                        voto['sessao_name'] = sess.xpath('text()').get().strip()
-                        voto['sessao_id'] = sess.xpath('text()').re('([0-9]+/[0-9]+)')[0]
+                        voto['sessao_name'] = sess.xpath('text()') \
+                            .get().strip()
+                        voto['sessao_id'] = sess.xpath('text()') \
+                            .re('([0-9]+/[0-9]+)')[0]
                         voto['sessao_url'] = sess.xpath('@href').get().strip()
                     if result:
                         result = result.lower().strip()
-                        voto['voto'] = 1 if result == 'sim' else -1 if result == 'não' else 0
+                        voto['voto'] = 1 if result == 'sim' else \
+                            -1 if result == 'não' else 0
                     else:
                         voto['voto'] = 0
                     yield voto
