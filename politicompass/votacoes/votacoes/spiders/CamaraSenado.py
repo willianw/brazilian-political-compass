@@ -38,6 +38,8 @@ class CamaraSenado(scrapy.Spider):
         if isinstance(sessoes, dict):
             sessoes = [sessoes]
         for sessao in sessoes:
+            sessao_id = sessao['CodigoSessao']
+            sessao_name = sessao['NumeroSessao']
             if 'Materias' in sessao:
                 materias = sessao['Materias']['Materia']
                 if isinstance(materias, dict):
@@ -45,15 +47,17 @@ class CamaraSenado(scrapy.Spider):
                 for materia in materias:
                     codigo = materia['CodigoMateria']
                     url = votacao_url.format(codigo)
-                    sessao_desc = materia['DescricaoIdentificacaoMateria'] \
+                    materia_desc = materia['DescricaoIdentificacaoMateria'] \
                         if 'Ementa' in materia else None
                     metadata = {
-                        'sessao_id': codigo,
-                        'sessao_name': materia[
+                        'materia_id': codigo,
+                        'materia_name': materia[
                             'DescricaoIdentificacaoMateria'
                             ],
-                        'sessao_desc': sessao_desc,
-                        'sessao_url': url,
+                        'materia_desc': materia_desc,
+                        'materia_url': url,
+                        'sessao_id': sessao_id,
+                        'sessao_name': sessao_name,
                         }
                     yield Request(url, self.parse_votacao,
                                   meta=metadata,
@@ -73,30 +77,26 @@ class CamaraSenado(scrapy.Spider):
         if isinstance(votacoes, dict):
             votacoes = [votacoes]
         for turno in votacoes:
+            sessao_num = turno['SessaoPlenaria']['NumeroSessao']
+            sessao_id = turno['SessaoPlenaria']['CodigoSessao']
             date_str = turno['SessaoPlenaria']['DataSessao']
             if 'Votos' not in turno:
                 return None
             for parlamentar in turno['Votos']['VotoParlamentar']:
                 identif = parlamentar['IdentificacaoParlamentar']
                 voto_str = parlamentar['DescricaoVoto'].lower().strip()
-
-                candidato = CandidadoItem()
                 candidato_id = identif['CodigoParlamentar']
-                candidato['name'] = identif['NomeCompletoParlamentar']
-                candidato['partido'] = identif.get('SiglaPartidoParlamentar',
-                                                   None)
-                candidato['uf'] = identif.get('UfParlamentar', None)
-                candidato['ano'] = ano
-                candidato['url'] = identif.get('UrlPaginaParlamentar', None)
-                candidato['candidato_id'] = candidato_id
-                yield candidato
 
                 voto = VotoItem()
                 voto['candidato_id'] = candidato_id
-                voto['sessao_name'] = metadata['sessao_name']
-                voto['sessao_desc'] = metadata['sessao_desc']
-                voto['sessao_url'] = metadata['sessao_url']
-                voto['sessao_id'] = metadata['sessao_id']
+                voto['candidato_name'] = identif['NomeCompletoParlamentar']
+                voto['candidato_part'] = identif.get(
+                    'SiglaPartidoParlamentar', None)
+                voto['candidato_uf'] = identif.get('UfParlamentar', None)
+                voto['proposition_id'] = metadata['materia_id']
+                voto['proposition_name'] = metadata['materia_name']
+                voto['sessao_desc'] = sessao_id
+                voto['sessao_id'] = sessao_num
                 voto['date'] = datetime.strptime(date_str, '%Y-%m-%d')
                 voto['voto'] = {'sim': 1, 'não': -1}.get(voto_str, 0)
                 yield voto

@@ -3,6 +3,7 @@ env
 .python-version
 .vscode
 
-*.DS_Store
-
+**/__pycache__
+**.DS_Store
+*.csv
 *.pyc
