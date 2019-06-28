@@ -2,6 +2,7 @@ from scrapy.http.request import Request
 # from scrapy.shell import inspect_response
 from datetime import datetime
 import scrapy
+import pdb
 
 from votacoes.items import VotoItem
 
@@ -17,7 +18,6 @@ class CamaraDeputados(scrapy.Spider):
             yield Request(url.format(year),
                           self.parse_year,
                           meta={'year': year})
-            break
 
     def parse_year(self, response):
         url_prop = "https://www.camara.leg.br/SitCamaraWS/Proposicoes.asmx/" \
@@ -25,8 +25,11 @@ class CamaraDeputados(scrapy.Spider):
         for proposicao in response.xpath("//proposicoes/proposicao"):
             codigo = proposicao.xpath('codProposicao/text()').get()
             nome_prop = proposicao.xpath('nomeProposicao/text()')
-            type_prop, code_prop, year_prop = \
-                nome_prop.re('([A-Z]+) (\d+)/(\d+)')
+            try:
+                _, type_prop, code_prop, year_prop = \
+                    nome_prop.re('(.* => )?([A-Z]+) (\d+)/(\d+)')
+            except ValueError:
+                pdb.set_trace()
             nome = nome_prop.get()
             data = proposicao.xpath('dataVotacao/text()').get()
             yield Request(url=url_prop.format(type_prop, code_prop, year_prop),
