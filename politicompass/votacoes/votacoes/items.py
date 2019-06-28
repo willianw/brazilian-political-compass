@@ -12,16 +12,18 @@ class CandidadoItem(Item):
     name = Field()
     partido = Field()
     uf = Field()
-    ano = Field()
-    url = Field()
+    data = Field()
     candidato_id = Field()
 
 
 class VotoItem(Item):
     candidato_id = Field()
-    sessao_name = Field()
+    candidato_name = Field()
+    candidato_part = Field()
+    candidato_uf = Field()
+    proposition_id = Field()
+    proposition_name = Field()
     sessao_desc = Field()
-    sessao_url = Field()
     sessao_id = Field()
     date = Field()
     voto = Field()
