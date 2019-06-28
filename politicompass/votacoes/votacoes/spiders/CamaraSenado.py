@@ -39,7 +39,7 @@ class CamaraSenado(scrapy.Spider):
             sessoes = [sessoes]
         for sessao in sessoes:
             sessao_id = sessao['CodigoSessao']
-            sessao_name = sessao['NumeroSessao']
+            sessao_name = sessao.get('NumeroSessao', '')
             if 'Materias' in sessao:
                 materias = sessao['Materias']['Materia']
                 if isinstance(materias, dict):
